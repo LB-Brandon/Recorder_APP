@@ -1,18 +1,15 @@
 package com.brandon.recorderapp
 
-import android.app.AlertDialog
-import android.app.Dialog
+import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.graphics.Color
-import android.graphics.drawable.Drawable
 import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.provider.MediaStore.Audio.Media
 import android.provider.Settings
 import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
@@ -24,6 +21,15 @@ import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
 
+    //    1. 릴리즈 → 녹음중 → 릴리즈(저장)
+//    2. 릴리즈 → 재생중 → 릴리즈
+//    * 녹음중 ↔ 재생중 간에 이동이 일어나선 안된다!!
+    private enum class State {
+        RELEASE, RECORDING, PLAYING
+    }
+
+    private var state: State = State.RELEASE
+
     private lateinit var binding: ActivityMainBinding
 
     private var recorder: MediaRecorder? = null
@@ -33,7 +39,7 @@ class MainActivity : AppCompatActivity() {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {    // 허용 시
                 Log.d("Permission", "Granted")
-                onRecord()
+                onRecord(true)
             } else {    // 거절 시
                 Log.d("Permission", "Denied")
             }
@@ -52,49 +58,75 @@ class MainActivity : AppCompatActivity() {
         // record button functionality with permission check
         binding.btnRecord.setOnClickListener {
             Log.d("Main-record", "click")
-            when {
-                ContextCompat.checkSelfPermission(
-                    this,
-                    android.Manifest.permission.RECORD_AUDIO
-                ) == PackageManager.PERMISSION_GRANTED -> {
-                    // Permission is already granted
-                    // TODO: Use RECORD
-                    onRecord()
-                    Log.d("Listener", "Answer when Permission is granted")
+
+            when (state) {
+                State.RELEASE -> {
+                    recordWithPermissionCheck()
                 }
 
-                ActivityCompat.shouldShowRequestPermissionRationale(
-                    this, android.Manifest.permission.RECORD_AUDIO
-                ) -> {
-                    // Additional rationale should be displayed
-                    Snackbar.make(
-                        binding.root,
-                        "Record access is required to record voice",
-                        Snackbar.LENGTH_SHORT
-                    ).apply {
-                        setAction("Setting") {
-                            requestPermissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
-                        }
-                        show()
-                    }
-                    Log.d("Listener", "Permission has been denied but check again")
+                State.RECORDING -> {
+                    onRecord(false)
                 }
 
-                else -> {
-                    // Permission has not been asked yet
-                    Log.d("Listener", "Permission asked")
-                    requestPermissionLauncher.launch(
-                        android.Manifest.permission.RECORD_AUDIO
-                    )
+                State.PLAYING -> {
+
                 }
             }
+
         }
 
     }
 
-    private fun onRecord() {
+    private fun recordWithPermissionCheck() {
+        when {
+            ContextCompat.checkSelfPermission(
+                this, Manifest.permission.RECORD_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                // Permission is already granted
+                // TODO: Use RECORD
+                onRecord(true)
+                Log.d("Listener", "Answer when Permission is granted")
+            }
+
+            ActivityCompat.shouldShowRequestPermissionRationale(
+                this, Manifest.permission.RECORD_AUDIO
+            ) -> {
+                // Additional rationale should be displayed
+                Snackbar.make(
+                    binding.root, "Record access is required to record voice", Snackbar.LENGTH_SHORT
+                ).apply {
+                    setAction("Setting") {
+                        requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                    }
+                    show()
+                }
+                Log.d("Listener", "Permission has been denied but check again")
+            }
+
+            else -> {
+                // Permission has not been asked yet
+                Log.d("Listener", "Permission asked")
+                requestPermissionLauncher.launch(
+                    Manifest.permission.RECORD_AUDIO
+                )
+            }
+        }
+    }
+
+
+    private fun onRecord(start: Boolean) {
+        if (start) {
+            startRecord()
+        } else {
+            stopRecording()
+        }
+    }
+
+
+    private fun startRecord() {
         // Initialize MediaRecorder
         // Recorder operates asynchronously
+        state = State.RECORDING
         recorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             MediaRecorder(this)
         } else {
@@ -118,8 +150,7 @@ class MainActivity : AppCompatActivity() {
         binding.btnRecord.apply {
             setImageDrawable(
                 ContextCompat.getDrawable(
-                    this@MainActivity,
-                    R.drawable.ic_baseline_stop_24
+                    this@MainActivity, R.drawable.ic_baseline_stop_24
                 )
             )
             imageTintList = ColorStateList.valueOf(Color.BLACK)
@@ -131,6 +162,31 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
+
+    private fun stopRecording() {
+        recorder?.apply {
+            stop()
+            release()
+        }
+        recorder = null
+        state = State.RELEASE
+
+        // Change UI
+        binding.btnRecord.apply {
+            setImageDrawable(
+                ContextCompat.getDrawable(
+                    this@MainActivity, R.drawable.ic_baseline_fiber_manual_record_24
+                )
+            )
+            imageTintList =
+                ColorStateList.valueOf(ContextCompat.getColor(this@MainActivity, R.color.red))
+        }
+        binding.btnPlay.apply {
+            isEnabled = true
+            alpha = 1.0f
+        }
+    }
+
 
     private fun navigateToAppSetting() {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
