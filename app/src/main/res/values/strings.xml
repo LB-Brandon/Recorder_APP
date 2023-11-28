@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">RecorderAPP</string>
+    <string name="permission_granted">Permission is already granted</string>
 </resources>
