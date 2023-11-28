@@ -18,7 +18,7 @@
         app:layout_constraintBottom_toTopOf="@id/view_wave_form"
         />
 
-    <View
+    <com.brandon.recorderapp.WaveformView
         android:id="@+id/view_wave_form"
         android:layout_width="0dp"
         android:layout_height="250dp"

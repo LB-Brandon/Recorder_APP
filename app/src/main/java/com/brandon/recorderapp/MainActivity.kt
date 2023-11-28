@@ -9,18 +9,18 @@ import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.brandon.recorderapp.databinding.ActivityMainBinding
 import com.google.android.material.snackbar.Snackbar
 import java.io.IOException
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), OnTimerTickListener{
     private lateinit var binding: ActivityMainBinding
 
     //    1. 릴리즈 → 녹음중 → 릴리즈(저장)
@@ -30,13 +30,12 @@ class MainActivity : AppCompatActivity() {
         RELEASE, RECORDING, PLAYING
     }
 
+    private lateinit var timer: Timer
+
     private var state: State = State.RELEASE
-
-
     private var recorder: MediaRecorder? = null
     private var fileName: String = ""
     private var player: MediaPlayer? = null
-
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {    // 허용 시
@@ -56,7 +55,7 @@ class MainActivity : AppCompatActivity() {
 
         // functionality of record
         fileName = "${externalCacheDir?.absolutePath}/audiorecordtest.3gp"
-
+        timer = Timer(this)
 
         // record button functionality with permission check
         binding.btnRecord.setOnClickListener {
@@ -225,6 +224,11 @@ class MainActivity : AppCompatActivity() {
             }
             start()
         }
+        // Timer start
+        timer.start()
+
+        // 진폭
+        recorder?.maxAmplitude?.toFloat()
 
         // Change UI
         binding.btnRecord.apply {
@@ -249,6 +253,7 @@ class MainActivity : AppCompatActivity() {
             release()
         }
         recorder = null
+        timer.stop()
         state = State.RELEASE
 
         // Change UI
@@ -273,6 +278,10 @@ class MainActivity : AppCompatActivity() {
             data = Uri.fromParts("package", packageName, null)
         }
         startActivity(intent)
+    }
+
+    override fun onTick(duration: Long) {
+        binding.viewWaveForm.addAmplitude(recorder?.maxAmplitude?.toFloat() ?: 0f)
     }
 
 }
