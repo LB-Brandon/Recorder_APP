@@ -89,6 +89,22 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 State.PLAYING -> {
+                    // do nothing
+                }
+            }
+        }
+
+        binding.btnStop.setOnClickListener {
+            when (state) {
+                State.RELEASE -> {
+                    // do nothing
+                }
+
+                State.RECORDING -> {
+                    // do nothing
+                }
+
+                State.PLAYING -> {
                     togglePlaying(false)
                 }
             }
@@ -133,21 +149,48 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun togglePlaying(start: Boolean) {
-        if (start){
+        if (start) {
             startPlaying()
-        }else{
+        } else {
             stopPlaying()
+        }
+    }
+
+
+    private fun startPlaying() {
+        state = State.PLAYING
+
+        player = MediaPlayer().apply {
+            try {
+                setDataSource(fileName)
+                prepare()
+            } catch (e: IOException) {
+                Log.e("PLAYER", "Media Player prepare() failed $e")
+            }
+            start()
+        }
+
+        // when play is done
+        player?.setOnCompletionListener {
+            stopPlaying()
+        }
+
+        binding.btnRecord.apply {
+            isEnabled = false
+            alpha = 0.3f
         }
     }
 
     private fun stopPlaying() {
         state = State.RELEASE
 
-    }
+        player?.release()
+        player = null
 
-    private fun startPlaying() {
-        state = State.PLAYING
-
+        binding.btnRecord.apply {
+            isEnabled = true
+            alpha = 1.0f
+        }
     }
 
 
