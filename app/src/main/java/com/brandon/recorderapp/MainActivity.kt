@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Build
@@ -20,26 +21,27 @@ import com.google.android.material.snackbar.Snackbar
 import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityMainBinding
 
     //    1. 릴리즈 → 녹음중 → 릴리즈(저장)
-//    2. 릴리즈 → 재생중 → 릴리즈
-//    * 녹음중 ↔ 재생중 간에 이동이 일어나선 안된다!!
+    //    2. 릴리즈 → 재생중 → 릴리즈
+    //    * 녹음중 ↔ 재생중 간에 이동이 일어나선 안된다!!
     private enum class State {
         RELEASE, RECORDING, PLAYING
     }
 
     private var state: State = State.RELEASE
 
-    private lateinit var binding: ActivityMainBinding
 
     private var recorder: MediaRecorder? = null
     private var fileName: String = ""
+    private var player: MediaPlayer? = null
 
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {    // 허용 시
                 Log.d("Permission", "Granted")
-                onRecord(true)
+                toggleRecording(true)
             } else {    // 거절 시
                 Log.d("Permission", "Denied")
             }
@@ -48,6 +50,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d("Main-record", "click")
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -57,15 +60,15 @@ class MainActivity : AppCompatActivity() {
 
         // record button functionality with permission check
         binding.btnRecord.setOnClickListener {
-            Log.d("Main-record", "click")
+
 
             when (state) {
                 State.RELEASE -> {
-                    recordWithPermissionCheck()
+                    startRecordWithPermissionCheck()
                 }
 
                 State.RECORDING -> {
-                    onRecord(false)
+                    toggleRecording(false)
                 }
 
                 State.PLAYING -> {
@@ -75,16 +78,32 @@ class MainActivity : AppCompatActivity() {
 
         }
 
+        binding.btnPlay.setOnClickListener {
+            when (state) {
+                State.RELEASE -> {
+                    togglePlaying(true)
+                }
+
+                State.RECORDING -> {
+                    // do nothing
+                }
+
+                State.PLAYING -> {
+                    togglePlaying(false)
+                }
+            }
+        }
+
     }
 
-    private fun recordWithPermissionCheck() {
+
+    private fun startRecordWithPermissionCheck() {
         when {
             ContextCompat.checkSelfPermission(
                 this, Manifest.permission.RECORD_AUDIO
             ) == PackageManager.PERMISSION_GRANTED -> {
                 // Permission is already granted
-                // TODO: Use RECORD
-                onRecord(true)
+                toggleRecording(true)
                 Log.d("Listener", "Answer when Permission is granted")
             }
 
@@ -113,17 +132,35 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun togglePlaying(start: Boolean) {
+        if (start){
+            startPlaying()
+        }else{
+            stopPlaying()
+        }
+    }
 
-    private fun onRecord(start: Boolean) {
+    private fun stopPlaying() {
+        state = State.RELEASE
+
+    }
+
+    private fun startPlaying() {
+        state = State.PLAYING
+
+    }
+
+
+    private fun toggleRecording(start: Boolean) {
         if (start) {
-            startRecord()
+            startRecording()
         } else {
             stopRecording()
         }
     }
 
 
-    private fun startRecord() {
+    private fun startRecording() {
         // Initialize MediaRecorder
         // Recorder operates asynchronously
         state = State.RECORDING
