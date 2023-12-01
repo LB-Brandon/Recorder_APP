@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/white"
     tools:context=".MainActivity">
 
     <TextView
@@ -11,52 +12,54 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="00:00:00"
-        android:textSize="40sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/view_wave_form"
-        />
-
-    <com.brandon.recorderapp.WaveformView
-        android:id="@+id/view_wave_form"
-        android:layout_width="0dp"
-        android:layout_height="250dp"
-        app:layout_constraintBottom_toTopOf="@id/btn_record"
+        android:textSize="45sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        app:layout_constraintBottom_toTopOf="@+id/view_wave_form"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+        <com.brandon.recorderapp.WaveformView
+            android:id="@+id/view_wave_form"
+            android:layout_width="0dp"
+            android:layout_height="250dp"
+            android:background="#BFBFBF"
+            android:layout_marginTop="60dp"
+            app:layout_constraintBottom_toTopOf="@id/btn_record"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
     <ImageView
         android:id="@+id/btn_play"
-        android:src="@drawable/ic_baseline_play_arrow_24"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/btn_record"
         android:layout_marginBottom="80dp"
-        />
+        android:src="@drawable/ic_baseline_play_arrow_24"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btn_record"
+        app:layout_constraintStart_toStartOf="parent" />
+
     <ImageView
         android:id="@+id/btn_record"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="80dp"
         android:src="@drawable/ic_baseline_fiber_manual_record_24"
-        app:tint="@color/red"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="80dp"
-        />
-    <ImageView
-        android:id="@+id/btn_stop"
-        android:src="@drawable/ic_baseline_stop_24"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@id/btn_record"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="80dp"
-        />
+        app:layout_constraintStart_toEndOf="@+id/btn_play"
+        app:tint="@color/red" />
+    <!--    <ImageView-->
+    <!--        android:id="@+id/btn_stop"-->
+    <!--        android:src="@drawable/ic_baseline_stop_24"-->
+    <!--        android:layout_width="50dp"-->
+    <!--        android:layout_height="50dp"-->
+    <!--        app:layout_constraintBottom_toBottomOf="parent"-->
+    <!--        app:layout_constraintStart_toEndOf="@id/btn_record"-->
+    <!--        app:layout_constraintEnd_toEndOf="parent"-->
+    <!--        android:layout_marginBottom="80dp"-->
+    <!--        />-->
 
 </androidx.constraintlayout.widget.ConstraintLayout>
